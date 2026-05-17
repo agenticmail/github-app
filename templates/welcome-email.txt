@@ -1,0 +1,32 @@
+Subject: You've installed AgenticMail for GitHub 🎀
+
+Hi there,
+
+AgenticMail for GitHub is now installed on {{account_login}}
+({{account_type}}), covering {{repo_scope}}. Your AI teammate is live.
+
+TRY IT IN 10 SECONDS
+Open any issue or pull request on a covered repo and leave a comment:
+
+    @agenticmail summarize
+
+The bot will react 👀, then post a 2-paragraph summary of the thread.
+
+WHAT ELSE IT DOES
+  @agenticmail triage             suggest labels + priority
+  @agenticmail reply <prompt>     draft a follow-up comment
+  @agenticmail email <address>    send the thread to a real inbox
+  @agenticmail handoff to <agent> route it to another agent
+  @agenticmail link related       find related issues
+
+New issues are triaged automatically and new pull requests are
+summarized automatically — no mention needed.
+
+MANAGE THIS INSTALL
+Add or remove repositories, or uninstall, from the App settings page:
+{{settings_url}}
+
+Questions? Just reply to this email or reach us at support@agenticmail.io.
+
+— The AgenticMail team
+https://agenticmail.io/github

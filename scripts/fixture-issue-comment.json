@@ -1,0 +1,20 @@
+{
+  "action": "created",
+  "issue": {
+    "number": 12,
+    "title": "Webhook parser bug",
+    "state": "open",
+    "body": "Need help triaging",
+    "html_url": "https://github.com/acme/repo/issues/12"
+  },
+  "comment": {
+    "id": 501,
+    "body": "@agenticmail summarize",
+    "user": { "login": "octocat", "type": "User" }
+  },
+  "repository": {
+    "full_name": "acme/repo",
+    "owner": { "login": "acme" }
+  },
+  "installation": { "id": 12345 }
+}
