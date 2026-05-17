@@ -9,9 +9,9 @@
      File: docs/screenshots/hero.gif -->
 <p align="center"><em>[ hero GIF — see docs/screenshots/hero.gif ]</em></p>
 
-[![Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-AgenticMail%20for%20GitHub-2da44e)](https://github.com/marketplace/agenticmail-for-github)
-[![Price](https://img.shields.io/badge/price-free-2da44e)](https://github.com/marketplace/agenticmail-for-github)
-[![Node](https://img.shields.io/badge/node-22-339933)](https://nodejs.org)
+[![Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-AgenticMail-2da44e)](https://github.com/marketplace/agenticmail)
+[![Price](https://img.shields.io/badge/price-free-2da44e)](https://github.com/marketplace/agenticmail)
+[![Install](https://img.shields.io/badge/install-1%20click-2da44e)](https://github.com/apps/agenticmail)
 
 ---
 
@@ -34,14 +34,15 @@ deployment and reuses the agent runtime you already run.
 
 ### From GitHub Marketplace (recommended)
 
-1. Open **[AgenticMail for GitHub](https://github.com/marketplace/agenticmail-for-github)** on the Marketplace.
+1. Open **[AgenticMail on the Marketplace](https://github.com/marketplace/agenticmail)**
+   (or jump straight to the install page at **[github.com/apps/agenticmail](https://github.com/apps/agenticmail)**).
 2. Click **Install it for free**.
 3. Choose the account/org, then pick **All repositories** or a specific set.
 4. Approve the requested permissions (see below) and confirm.
-5. You'll land on the AgenticMail welcome page, and the account owner gets a
-   welcome email with a direct link to the App's settings.
 
-That's it — the bot is live on the repos you selected.
+That's it — the bot is live on the repos you selected. The bot proves itself
+the first time you `@agenticmail` it (or open a new issue / PR, which it
+will auto-triage and auto-summarize respectively).
 
 <!-- screenshot:install -->
 <!-- PLACEHOLDER — 1280×800 PNG of the Marketplace install screen.
@@ -95,49 +96,54 @@ Notes:
 
 ## For operators — deploying the App
 
-This repo is the package `@agenticmail/github-app`. It ships **no `listen()`** —
-it is a library that mounts into your existing `@agenticmail/enterprise` server.
+The hosted App at [github.com/apps/agenticmail](https://github.com/apps/agenticmail)
+runs on Netlify Functions. The same code can be re-deployed under any other
+GitHub App by setting the four env vars below — the function itself is
+infrastructure-agnostic (works on any platform that delivers `Request`/
+`Response` and supports `context.waitUntil`).
 
-```ts
-import { createGitHubApp } from "@agenticmail/github-app";
+### Production endpoints
 
-const { router } = createGitHubApp({
-  vault,                                    // SecureVault — reads the App private key
-  agentRuntimeBaseUrl: "http://127.0.0.1:3101",
-  logger,
-  config: { appId, webhookSecret, clientId, clientSecret },
-});
-
-app.route("/", router);                     // one process, one port
-```
+| Route                          | Purpose                                          |
+| ------------------------------- | ------------------------------------------------ |
+| `POST /api/github/webhook`     | Receives all GitHub webhook deliveries.          |
+| `GET  /api/github/health`      | Liveness + which secrets are configured.         |
+| `GET  /api/github/audit`       | Operator-only audit log reader (admin-token gated). |
 
 ### GitHub App settings
 
 When you register the App at **Settings → Developer settings → GitHub Apps**:
 
-- **Webhook URL:** `https://<your-enterprise-host>/webhooks/github`
-- **Webhook secret:** a strong random string — store it in SecureVault.
+- **Webhook URL:** `https://<your-host>/api/github/webhook`
+- **Webhook secret:** a strong random string (set it on the App and in env as `GITHUB_WEBHOOK_SECRET`).
 - **Permissions:** Issues R/W, Pull requests R/W, Metadata R.
 - **Subscribe to events:** `issue_comment`, `pull_request_review_comment`,
   `issues`, `pull_request`, `installation`.
-- **Callback URL:** `https://<your-enterprise-host>/app/install/callback`
 
-### Secrets (SecureVault)
+### Environment variables
 
-| Item              | Stored in        | Used for                     |
-| ----------------- | ---------------- | ---------------------------- |
-| App ID            | enterprise config | identifying the App          |
-| Webhook secret    | SecureVault      | HMAC signature verification  |
-| App private key   | SecureVault      | RS256 JWT signing            |
-| OAuth id/secret   | SecureVault      | install callback             |
+| Var                          | Required | Purpose                                          |
+| ----------------------------- | -------- | ------------------------------------------------ |
+| `GITHUB_APP_ID`              | yes      | Numeric App ID from the App settings page.       |
+| `GITHUB_APP_PRIVATE_KEY`     | yes      | PEM-encoded RSA private key (escaped `\n` ok).   |
+| `GITHUB_WEBHOOK_SECRET`      | yes      | HMAC secret matching the App's webhook config.   |
+| `ANTHROPIC_AUTH_TOKEN`       | one of   | Claude OAuth token (`sk-ant-oat01-…`).           |
+| `ANTHROPIC_API_KEY`          | one of   | Classic API key (`sk-ant-api03-…`).              |
+| `ADMIN_AUDIT_TOKEN`          | no       | Enables the `/api/github/audit` endpoint.        |
+| `AGENTICMAIL_API_KEY`        | no       | Enables install/uninstall email notifications.   |
+| `AGENTICMAIL_OPS_EMAIL`      | no       | Recipient address for those notifications.       |
 
-### Routes
+The function reads `ANTHROPIC_AUTH_TOKEN` first; if absent it falls back
+to `ANTHROPIC_API_KEY`. OAuth tokens require model `claude-haiku-4-5`
+or higher — earlier-generation aliases like `claude-3-5-haiku-latest`
+are not visible on the OAuth surface.
 
-| Route                       | Purpose                              |
-| --------------------------- | ------------------------------------ |
-| `POST /webhooks/github`     | Receives all GitHub webhook events.  |
-| `GET  /app/install/callback`| Post-install landing redirect.       |
-| `GET  /app/github/health`   | Liveness for the App subsystem.      |
+### Rate limiting + audit
+
+Every accepted delivery writes one entry to the `github-webhook-audit`
+Netlify Blob store, keyed by `<YYYY-MM-DD>/<delivery-uuid>`. User-triggered
+mentions are bucketed at **60 per installation per rolling hour** — the bot
+posts a polite cooldown comment once a bucket is exhausted.
 
 ### Build & run
 
@@ -174,10 +180,12 @@ for the full API contract.
 
 ### Security
 
-- HMAC-SHA256 verification on every webhook, compared with `timingSafeEqual`.
-- Delivery-UUID dedup so GitHub retries never double-post.
-- Per-installation tokens, cached 50 min, minted from a vault-held private key.
-- Rate-limit backoff (403/429) handled in the worker, never on the ack path.
+- HMAC-SHA256 verification on every webhook, constant-time compared.
+- Delivery-UUID dedup (5-min TTL) so GitHub retries never double-post.
+- Short-lived (~60 min) per-installation tokens, minted on demand from the
+  App's private key — never persisted.
+- Per-installation rate limiting (60 user-mentions / hour) to cap abuse impact.
+- Bot-authored comments are ignored on inbound (no self-mention loops).
 
 ---
 
