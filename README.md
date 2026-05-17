@@ -122,6 +122,8 @@ infrastructure-agnostic (works on any platform that delivers `Request`/
 | `POST /api/github/webhook`     | Receives all GitHub webhook deliveries.          |
 | `GET  /api/github/health`      | Liveness + which secrets are configured.         |
 | `GET  /api/github/audit`       | Operator-only audit log reader (admin-token gated). |
+| `GET  /api/github/usage`       | Per-installation token + cost aggregator (admin-token gated). |
+| `GET\|POST\|DELETE /api/github/billing` | Inspect / comp / clear plan records (admin-token gated). |
 
 ### GitHub App settings
 
@@ -142,9 +144,12 @@ When you register the App at **Settings → Developer settings → GitHub Apps**
 | `GITHUB_WEBHOOK_SECRET`      | yes      | HMAC secret matching the App's webhook config.   |
 | `ANTHROPIC_AUTH_TOKEN`       | one of   | Claude OAuth token (`sk-ant-oat01-…`).           |
 | `ANTHROPIC_API_KEY`          | one of   | Classic API key (`sk-ant-api03-…`).              |
-| `ADMIN_AUDIT_TOKEN`          | no       | Enables the `/api/github/audit` endpoint.        |
-| `AGENTICMAIL_API_KEY`        | no       | Enables install/uninstall email notifications.   |
-| `AGENTICMAIL_OPS_EMAIL`      | no       | Recipient address for those notifications.       |
+| `ADMIN_AUDIT_TOKEN`          | no       | Enables `/api/github/audit`, `/usage`, `/billing`. |
+| `SENDGRID_API_KEY`           | no       | Preferred outbound email path (welcome + ops).   |
+| `SENDGRID_FROM_EMAIL`        | no       | Verified sender address for SendGrid.            |
+| `AGENTICMAIL_SEND_URL`       | no       | Fallback email path (any POST-JSON-compatible provider). |
+| `AGENTICMAIL_API_KEY`        | no       | API key for the fallback email path.             |
+| `AGENTICMAIL_OPS_EMAIL`      | no       | Recipient for operator-side install notifications. |
 
 The function reads `ANTHROPIC_AUTH_TOKEN` first; if absent it falls back
 to `ANTHROPIC_API_KEY`. OAuth tokens require model `claude-haiku-4-5`
