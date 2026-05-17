@@ -204,9 +204,63 @@ and the installation should no longer appear in `installs`.
 
 ---
 
+---
+
+## 9. Paid-verb gate (Free plan → upgrade message)
+
+If the installation is on the Free plan (the default until a
+`marketplace_purchase` event flips it to paid), invoking any paid verb
+should produce an upgrade message — NOT the actual action.
+
+Open an issue and post:
+
+```
+@agenticmail close
+```
+
+**Expected:** bot replies with the 🔒 upgrade-required comment containing
+a link to `github.com/marketplace/agenticmail`. The issue **must remain
+open**.
+
+Verify in the audit log that the event was `processed` (not failed) —
+the bot did the right thing by refusing.
+
+---
+
+## 10. Paid actions (paid plan → state change)
+
+These only run end-to-end if the test account has an active paid
+subscription on the Marketplace listing. To dry-run without paying, set
+the billing record manually via the Netlify Blobs CLI:
+
+```sh
+netlify blobs:set github-billing <account-login-lowercased> '{
+  "accountLogin": "<account-login>",
+  "accountId": 0,
+  "planName": "Pro",
+  "planId": 1,
+  "updatedAt": "2026-05-17T00:00:00Z"
+}'
+```
+
+Then on a test PR:
+
+| Verb                       | Expected                                                    |
+| -------------------------- | ----------------------------------------------------------- |
+| `@agenticmail close`       | Issue/PR transitions to `closed`; bot posts a ✅ comment.   |
+| `@agenticmail merge`       | PR merges with `squash`; bot posts a ✅ comment.            |
+| `@agenticmail merge rebase`| PR merges with `rebase`.                                    |
+| `@agenticmail review`      | A formal Pull Request Review with `event: COMMENT` appears. |
+
+If GitHub branch protection or permissions block the action, the bot
+posts a `❌` comment with the API status code and message — that's
+expected behaviour, not a failure of the bot.
+
+---
+
 ## Pass criteria
 
-All eight steps green = green-light for the listing. Any red:
+All ten steps green = green-light for the listing. Any red:
 - Pull the failing delivery from the audit log.
 - Inspect `error` field and Netlify function logs.
 - Fix, redeploy, re-run from step 0.

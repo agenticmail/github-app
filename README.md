@@ -64,7 +64,9 @@ labels, close issues, or push code. Triage is advisory in v1.
 
 ## Use
 
-In any issue or PR comment, type `@agenticmail` followed by a verb:
+In any issue or PR comment, type `@agenticmail` followed by a verb.
+
+**Free plan** — read + AI-reply commands:
 
 | Command                          | What happens                                              |
 | --------------------------------- | --------------------------------------------------------- |
@@ -74,6 +76,17 @@ In any issue or PR comment, type `@agenticmail` followed by a verb:
 | `@agenticmail reply <prompt>`     | Drafts a follow-up comment from your prompt.               |
 | `@agenticmail handoff to <agent>` | Re-routes the request to another agent in your org.       |
 | `@agenticmail link related`       | Finds and links related open issues by similarity.        |
+
+**Paid plan** — state-changing actions (require an active paid subscription):
+
+| Command                          | What happens                                              |
+| --------------------------------- | --------------------------------------------------------- |
+| `@agenticmail close [not planned]`| Closes the issue or PR. Use `not planned` for non-completed reasons. |
+| `@agenticmail merge [squash\|rebase\|merge]` | Merges the pull request. Default: `squash`. |
+| `@agenticmail review`             | Posts a formal Pull Request Review (`event: COMMENT`) with AI-generated feedback. Never auto-approves. |
+
+If a paid command is invoked from a free-plan account, the bot replies with an
+upgrade prompt linking to the Marketplace listing. No state changes occur.
 
 Notes:
 - A bare `@agenticmail` with no verb defaults to **summarize**.
@@ -118,7 +131,7 @@ When you register the App at **Settings → Developer settings → GitHub Apps**
 - **Webhook secret:** a strong random string (set it on the App and in env as `GITHUB_WEBHOOK_SECRET`).
 - **Permissions:** Issues R/W, Pull requests R/W, Metadata R.
 - **Subscribe to events:** `issue_comment`, `pull_request_review_comment`,
-  `issues`, `pull_request`, `installation`.
+  `issues`, `pull_request`, `installation`, `marketplace_purchase`.
 
 ### Environment variables
 
