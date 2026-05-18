@@ -207,6 +207,73 @@ for the full API contract.
 
 ---
 
+## Contributing
+
+**This repo eats its own dog food** — AgenticMail is installed on
+`agenticmail/github-app`, so every contribution gets the same automated
+treatment any user does. Useful while filing issues or sending PRs:
+
+### Opening an issue
+
+Open one the usual way (`Issues → New issue`). Within ~15 seconds the bot
+will auto-triage it: a comment lands suggesting labels, a priority, and
+whether it looks like a duplicate of anything in the thread. Treat that as
+a starting point — the bot **suggests** labels, it doesn't apply them. If
+the triage is off, ignore it and re-state the bug.
+
+You can also call the bot yourself in any comment:
+
+```
+@agenticmail summarize       # re-summarize after a long discussion
+@agenticmail link related    # find related open issues
+@agenticmail triage          # re-triage after the description changes
+```
+
+### Sending a pull request
+
+1. Fork, branch, commit, push, open the PR. **`gh pr create` works fine.**
+2. The bot auto-summarizes every new PR within ~15 seconds. The summary
+   pulls in the diff from up to 20 changed files (first 40 lines of each
+   patch) so the description doesn't have to do the heavy lifting.
+3. In any PR comment, you can request a deeper read:
+
+   ```
+   @agenticmail review                       # AI-generated PR review (COMMENT event)
+   @agenticmail summarize                    # re-run the summary
+   @agenticmail reply explain the rate limiter change in plain English
+   ```
+
+   `review` posts a formal Pull Request Review with `event: COMMENT` — it
+   never auto-approves or requests changes. A human still has to merge.
+
+### Rate limits
+
+The bot is rate-limited to 60 mentions per installation per rolling hour.
+If you hit it, the bot posts a polite cooldown comment with the ETA — wait
+for the reset, then continue.
+
+### When the bot says something wrong
+
+Just ignore the comment and reply normally — the bot's reply is a draft,
+not the source of truth. If a comment is misleading enough to need
+removing, leave a 👎 reaction so we can audit those cases.
+
+### What the bot can and cannot do here
+
+| Capability | Available on this repo |
+| --- | --- |
+| Summarize, triage, reply, email, handoff, link | ✅ Free, always on |
+| Auto-triage on new issues / auto-summary on new PRs | ✅ Always on |
+| **Close** issues or PRs | ✅ (paid-plan-only feature; agenticmail org is comped) |
+| **Merge** PRs | ✅ — but the bot never merges without an explicit `@agenticmail merge` |
+| **Review** PRs | ✅ — posts a `COMMENT` review, never an auto-approve |
+
+If you'd rather the bot stay out of a specific thread, just don't
+`@agenticmail` it. The auto-triage / auto-summary still fires once on
+open — there's no per-thread opt-out yet.
+
+---
+
 ## Related
 
 - **[agenticmail/send-email-action](https://github.com/agenticmail/send-email-action)** —
